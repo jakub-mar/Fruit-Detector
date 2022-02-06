@@ -1,5 +1,5 @@
 numpy==1.19.5
-opencv-python==4.5.3.56
+opencv-contrib-python==4.5.3.56
 tqdm==4.62.3
 click==7.1.2
-pykuwahara
+pykuwahara==0.3.2
