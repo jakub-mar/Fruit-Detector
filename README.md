@@ -7,7 +7,7 @@ Project is based on OpenCV library. The photos are taken in similar conditions.
 Results are printed on the terminal and written into *results.json* file.
 
 Project tree structure:
-![Structure](readme_files/tree.png)
+![Structure](readme_files/project_tree.png)
 
 ## Results
 Data printed on the terminal:
