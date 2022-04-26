@@ -1,17 +1,12 @@
 import cv2
-import json
-import click
-
-from glob import glob
-from tqdm import tqdm
-
-from typing import Dict
-
+import os
 import numpy as np
 from pykuwahara import kuwahara
+import json
 
 
 def ReadyImage(source, interpolation_type, scale):
+    # Reading image from file and resizing it
     image = cv2.imread(source, cv2.IMREAD_UNCHANGED)
     image_resized = cv2.resize(
         image, (int(image.shape[0]/scale), int(image.shape[1]/scale)), interpolation=interpolation_type)
@@ -19,6 +14,7 @@ def ReadyImage(source, interpolation_type, scale):
 
 
 def ImageFiltering(if_image):
+    # Apllying filters to transform the image
     image_kuwahara = kuwahara(if_image, method='mean', radius=15)
     image_median = cv2.medianBlur(image_kuwahara, 15)
     image_hsv = cv2.cvtColor(image_median, cv2.COLOR_BGR2HSV)
@@ -26,6 +22,7 @@ def ImageFiltering(if_image):
 
 
 def FruitsDetection(filtered_image):
+    # Apllying a special mask that cut out every fruit from image
     fruits_l = (0, 94, 0)
     fruits_h = (255, 255, 255)
 
@@ -39,6 +36,7 @@ def FruitsDetection(filtered_image):
 
 
 def FindBanana(filtered_image, fruits_detected, area, image_to_contours):
+    # Cutting out bananas by specific thresholds
     banana_counter = 0
 
     banana_l = (20, 59, 180)
@@ -63,6 +61,7 @@ def FindBanana(filtered_image, fruits_detected, area, image_to_contours):
 
 
 def FindApple(filtered_image, fruits_detected, area, image_to_contours):
+    # Cutting out apples by specific thresholds
     apple_counter = 0
 
     apple_l = (0, 79, 17)
@@ -98,6 +97,7 @@ def FindApple(filtered_image, fruits_detected, area, image_to_contours):
 
 
 def FindOrange(filtered_image, fruits_detected, area, image_to_contours):
+    # Cutting out oranges by specific thresholds
     orange_counter = 0
     orange_l = (11, 65, 152)
     orange_h = (19, 255, 255)
@@ -121,7 +121,8 @@ def FindOrange(filtered_image, fruits_detected, area, image_to_contours):
     return orange_counter, orange_mask
 
 
-def detect_fruits(img_path: str) -> Dict[str, int]:
+def detect_fruits(img_path: str):
+    # Main function which is cutting out and count fruits from image
     """Fruit detection function, to implement.
 
     Parameters
@@ -149,24 +150,20 @@ def detect_fruits(img_path: str) -> Dict[str, int]:
     return {'apple': apple, 'banana': banana, 'orange': orange}
 
 
-@click.command()
-@click.option('-p', '--data_path', help='Path to data directory')
-@click.option('-o', '--output_file_path', help='Path to output file')
-def main(data_path, output_file_path):
+def main():
+    # Creating list of images from folder 'data'
+    im_list = os.listdir('./data')
+    im_list.sort()
 
-    img_list = glob(f'{data_path}/*.jpg')
+    result = {}
+    for image in im_list:
+        full_path = os.path.join('data/', image)
+        result[image] = (detect_fruits(full_path))
 
-    results = {}
+    with open('results.json', 'w') as file:
+        json.dump(result, file)
 
-    for img_path in tqdm(sorted(img_list)):
-        fruits = detect_fruits(img_path)
-
-        filename = img_path.split('/')[-1]
-
-        results[filename] = fruits
-
-    with open(output_file_path, 'w') as ofp:
-        json.dump(results, ofp)
+    print(result, sep='\n')
 
 
 if __name__ == '__main__':
